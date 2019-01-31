@@ -45,7 +45,7 @@ func main() {
             // panic("OMGWTFBBQ")
         }
 
-        return context.String(http.StatusOK, taco.Value.Joke)
+        return context.HTML(http.StatusOK, "<em>" + taco.Value.Joke + "</em>" + `<br><em>- Faith Chikwekwe</em>`)
 
         })
 
