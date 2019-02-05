@@ -77,6 +77,7 @@ func newYorkBarFly(vomit string) string {
         log.Fatalln(jsonErr)
     }
     // returning an array of quotes
+    // need to work on return a random quote from the array
     return chalupa.Embedded.Quotes
 }
 
