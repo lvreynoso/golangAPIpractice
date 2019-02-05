@@ -25,17 +25,28 @@ type Taco struct {
     Type string `json:"type"`
     Value ChuckJoke `json:"value"`
 }
+
+type Quotes struct {
+    Value string `json:"value"`
+}
+
+type TrumpDump struct {
+    Quotes []Quotes `json:"quotes"`
+}
+
+type TrumpQuotes struct {
+    Embedded TrumpDump `json:"_embedded"`
+}
+
 func texasRanger() string {
     response, err := http.Get("https://api.icndb.com/jokes/random")
     if err != nil {
         log.Fatalln(err)
-        // panic("OMGWTFBBQ")
     }
 
     body, err := ioutil.ReadAll(response.Body)
     if err != nil {
         log.Fatalln(err)
-        // panic("OMGWTFBBQ")
     }
 
     taco := Taco{}
@@ -43,34 +54,30 @@ func texasRanger() string {
     jsonErr := json.Unmarshal(body, &taco)
     if jsonErr != nil {
         log.Fatalln(jsonErr)
-        // panic("OMGWTFBBQ")
     }
 
     return taco.Value.Joke
 }
 
 func newYorkBarFly(vomit string) string {
-    response, err := http.Get("")
+    response, err := http.Get("https://api.tronalddump.io/search/quote?query=" + vomit)
     if err != nil {
         log.Fatalln(err)
-        // panic("OMGWTFBBQ")
     }
 
     body, err := ioutil.ReadAll(response.Body)
     if err != nil {
         log.Fatalln(err)
-        // panic("OMGWTFBBQ")
     }
 
-    taco := Taco{}
+    chalupa := TrumpQuotes{}
 
-    jsonErr := json.Unmarshal(body, &taco)
+    jsonErr := json.Unmarshal(body, &chalupa)
     if jsonErr != nil {
         log.Fatalln(jsonErr)
-        // panic("OMGWTFBBQ")
     }
-
-    return taco.Value.Joke
+    // returning an array of quotes
+    return chalupa.Embedded.Quotes
 }
 
 func main() {
