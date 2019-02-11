@@ -59,7 +59,7 @@ func texasRanger() string {
     return taco.Value.Joke
 }
 
-func newYorkBarFly(vomit string) string {
+func newYorkBarFly(vomit string) []Quotes {
     response, err := http.Get("https://api.tronalddump.io/search/quote?query=" + vomit)
     if err != nil {
         log.Fatalln(err)
