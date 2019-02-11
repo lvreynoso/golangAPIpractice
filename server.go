@@ -14,10 +14,10 @@ import (
 "strings"
 "math/rand"
 )
-
+    
 // STRETCH CHALLENGE OPTIONS:
 // [DONE] return an array of words in a ChuckJoke
-// [WIP] call another API with similar content to original ChuckJoke
+// [DONE] call another API with similar content to original ChuckJoke
 
 // Takes in Chuck Norris API; used in Taco struct
 type ChuckJoke struct {
@@ -36,11 +36,6 @@ type Taco struct {
 type Dumps struct {
     Value string `json:"value"`
 }
-
-// Takes in Quotes struct; used in TrumpQuotes
-// type TrumpDump struct {
-//     Quotes []string `json:"quotes"`
-// }
 
 // Takes in TrumpDump struct; used in func newYorkBarFly
 type TrumpQuotes struct {
@@ -73,7 +68,7 @@ func texasRanger() string {
 
 func newYorkBarFly(vomit []string) (_ string, err error) {
 
-    fmt.Println("WE'RE HEADING TO NEW YORK")
+    fmt.Println("WELCOME TO NEW YORK")
 
     chalupa := TrumpQuotes{}
 
@@ -92,7 +87,6 @@ func newYorkBarFly(vomit []string) (_ string, err error) {
         if responseErr != nil {
             fmt.Println("Error getting a response")
             log.Fatalln(err)
-            // time.Sleep(300 * time.Millisecond)
             continue
         }
 
@@ -102,7 +96,6 @@ func newYorkBarFly(vomit []string) (_ string, err error) {
         if bodyErr != nil {
             fmt.Println("Error reading the response body")
             log.Fatalln(err)
-            // time.Sleep(300 * time.Millisecond)
             continue
         }
 
@@ -113,11 +106,12 @@ func newYorkBarFly(vomit []string) (_ string, err error) {
         jsonErr := json.Unmarshal(body, &rawChalupa)
         if jsonErr != nil {
             fmt.Println("Oh shit! JSON couldn't be unmarsheled! Trying again!")
-            // log.Fatalln(err)
-            // time.Sleep(300 * time.Millisecond)
+            continue
+        } else if len(rawChalupa.Embedded.Quotes) < 1 {
+            fmt.Println("No quotes! Try again!")
             continue
         } else {
-            fmt.Println("We unmarsheled that JSON!")
+            fmt.Println("We unmarsheled that JSON and got some quotes!")
             chalupa = rawChalupa
             break
         }
@@ -172,21 +166,7 @@ func main() {
 
         return context.HTML(http.StatusOK, "<p><em>" + tacoFilling + "</em>" + `<br><em>- Faith Chikwekwe</em></p><br><p><em>` + upchuck + `</em><br><em>- Lucia Reynoso</em></p>`)
 
-        })
-
-    // server.GET("/tokenize", func(context echo.Context) error {
-    //     tacoFilling := texasRanger()
-    //     groundBeef := strings.Split(tacoFilling, " ")
-    //     meatMap := make(map[string]int)
-    //     for _, beef := range groundBeef {
-    //         if _, ok := meatMap[beef]; ok {
-    //             meatMap[beef] += 1
-    //         } else {
-    //             meatMap[beef] = 1
-    //         }
-    //     }
-    //     return context.JSON(http.StatusOK, meatMap)
-    // })
+    })
 
     server.Logger.Fatal(server.Start(":9001"))
 }
