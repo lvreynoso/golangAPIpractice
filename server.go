@@ -3,12 +3,16 @@
 package main
 
 import (
+"time"
+"errors"
+"fmt"
 "encoding/json"
 "io/ioutil"
 "log"
 "net/http"
 "github.com/labstack/echo"
 "strings"
+"math/rand"
 )
 
 // STRETCH CHALLENGE OPTIONS:
@@ -29,18 +33,20 @@ type Taco struct {
 }
 
 // Takes in tronalddump API; used in TrumpDump struct
-type Quotes struct {
+type Dumps struct {
     Value string `json:"value"`
 }
 
 // Takes in Quotes struct; used in TrumpQuotes
-type TrumpDump struct {
-    Quotes []Quotes `json:"quotes"`
-}
+// type TrumpDump struct {
+//     Quotes []string `json:"quotes"`
+// }
 
 // Takes in TrumpDump struct; used in func newYorkBarFly
 type TrumpQuotes struct {
-    Embedded TrumpDump `json:"_embedded"`
+    Embedded struct {
+        Quotes []Dumps `json:"quotes"`
+    } `json:"_embedded"`
 }
 
 func texasRanger() string {
@@ -65,39 +71,80 @@ func texasRanger() string {
     return taco.Value.Joke
 }
 
-func newYorkBarFly(vomit string) []Quotes {
-    response, err := http.Get("https://api.tronalddump.io/search/quote?query=" + vomit)
-    if err != nil {
-        log.Fatalln(err)
-    }
+func newYorkBarFly(vomit []string) (_ string, err error) {
 
-    body, err := ioutil.ReadAll(response.Body)
-    if err != nil {
-        log.Fatalln(err)
-    }
+    fmt.Println("WE'RE HEADING TO NEW YORK")
 
     chalupa := TrumpQuotes{}
 
-    jsonErr := json.Unmarshal(body, &chalupa)
-    if jsonErr != nil {
-        log.Fatalln(jsonErr)
+    for index, word := range vomit {
+
+        fmt.Printf("FOR THE %d TIME\n", index + 1)
+
+        if len(word) < 4 {
+            fmt.Println("Wow, this word sucks! It has 3 or fewer characters in it!")
+            continue
+        }
+
+        fmt.Println("Our word is longer than 3 characters!")
+
+        response, responseErr := http.Get("https://api.tronalddump.io/search/quote?query=" + word)
+        if responseErr != nil {
+            fmt.Println("Error getting a response")
+            log.Fatalln(err)
+            // time.Sleep(300 * time.Millisecond)
+            continue
+        }
+
+        fmt.Println("We got a response!")
+
+        body, bodyErr := ioutil.ReadAll(response.Body)
+        if bodyErr != nil {
+            fmt.Println("Error reading the response body")
+            log.Fatalln(err)
+            // time.Sleep(300 * time.Millisecond)
+            continue
+        }
+
+        fmt.Println("We read the body!")
+
+        rawChalupa := TrumpQuotes{}
+
+        jsonErr := json.Unmarshal(body, &rawChalupa)
+        if jsonErr != nil {
+            fmt.Println("Oh shit! JSON couldn't be unmarsheled! Trying again!")
+            // log.Fatalln(err)
+            // time.Sleep(300 * time.Millisecond)
+            continue
+        } else {
+            fmt.Println("We unmarsheled that JSON!")
+            chalupa = rawChalupa
+            break
+        }
     }
-    // returning an array of quotes
-    // need to work on return a random quote from the array
-    return chalupa.Embedded.Quotes
+
+    fmt.Println("Chalupa:")
+    fmt.Println(chalupa.Embedded.Quotes)
+
+    trumpQuote := ""
+
+    if len(chalupa.Embedded.Quotes) > 0 {
+        err = nil
+        trumpQuote = chalupa.Embedded.Quotes[rand.Intn(len(chalupa.Embedded.Quotes))].Value
+    } else {
+        fmt.Println("Wow this quote sucks! Tronald Dump hasn't said anything about any of these words!")
+        err = errors.New("Chuck Norris? Never heard of him.")
+    }
+
+    return trumpQuote, err
 }
 
 func main() {
     server := echo.New()
 
+    rand.Seed(time.Now().Unix())
+
     server.GET("/", func(context echo.Context) error {
-        tacoFilling := texasRanger()
-
-        return context.HTML(http.StatusOK, "<em>" + tacoFilling + "</em>" + `<br><em>- Faith Chikwekwe</em>`)
-
-        })
-
-    server.GET("/tokenize", func(context echo.Context) error {
         tacoFilling := texasRanger()
         groundBeef := strings.Split(tacoFilling, " ")
         meatMap := make(map[string]int)
@@ -108,8 +155,38 @@ func main() {
                 meatMap[beef] = 1
             }
         }
-        return context.JSON(http.StatusOK, meatMap)
-    })
+
+        hotWord := make([]string, 0)
+        for key, value := range meatMap {
+            if value == 1 {
+                hotWord = append(hotWord, key)
+            }
+        }
+        fmt.Println(`Chuck's words are:`)
+        fmt.Println(hotWord)
+        upchuck, err := newYorkBarFly(hotWord)
+
+        if err != nil {
+            upchuck = err.Error()
+        }
+
+        return context.HTML(http.StatusOK, "<p><em>" + tacoFilling + "</em>" + `<br><em>- Faith Chikwekwe</em></p><br><p><em>` + upchuck + `</em><br><em>- Lucia Reynoso</em></p>`)
+
+        })
+
+    // server.GET("/tokenize", func(context echo.Context) error {
+    //     tacoFilling := texasRanger()
+    //     groundBeef := strings.Split(tacoFilling, " ")
+    //     meatMap := make(map[string]int)
+    //     for _, beef := range groundBeef {
+    //         if _, ok := meatMap[beef]; ok {
+    //             meatMap[beef] += 1
+    //         } else {
+    //             meatMap[beef] = 1
+    //         }
+    //     }
+    //     return context.JSON(http.StatusOK, meatMap)
+    // })
 
     server.Logger.Fatal(server.Start(":9001"))
 }
