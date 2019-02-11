@@ -12,33 +12,39 @@ import (
 )
 
 // STRETCH CHALLENGE OPTIONS:
-// return an array of words in a ChuckJoke
-// call another API with similar content to original ChuckJoke
+// [DONE] return an array of words in a ChuckJoke
+// [WIP] call another API with similar content to original ChuckJoke
 
+// Takes in Chuck Norris API; used in Taco struct
 type ChuckJoke struct {
     ID int `json:"id"`
     Joke string `json:"joke"`
     Categories []string `json:"categories"`
 }
 
+// Takes in ChuckJoke struct; used in texasRanger
 type Taco struct {
     Type string `json:"type"`
     Value ChuckJoke `json:"value"`
 }
 
+// Takes in tronalddump API; used in TrumpDump struct
 type Quotes struct {
     Value string `json:"value"`
 }
 
+// Takes in Quotes struct; used in TrumpQuotes
 type TrumpDump struct {
     Quotes []Quotes `json:"quotes"`
 }
 
+// Takes in TrumpDump struct; used in func newYorkBarFly
 type TrumpQuotes struct {
     Embedded TrumpDump `json:"_embedded"`
 }
 
 func texasRanger() string {
+    // takes in Taco struct and returns a Chuck Norris jok as a string
     response, err := http.Get("https://api.icndb.com/jokes/random")
     if err != nil {
         log.Fatalln(err)
